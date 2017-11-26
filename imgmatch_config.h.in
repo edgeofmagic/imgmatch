@@ -1,0 +1,2 @@
+#define imgmatch_VERSION_MAJOR @imgmatch_VERSION_MAJOR@
+#define imgmatch_VERSION_MINOR @imgmatch_VERSION_MINOR@

@@ -1,0 +1,12 @@
+#general swap/backup files
+*.so
+*.log
+*.out
+*~
+*.swp
+*.DS_Store
+*.lock
+
+nbproject/private/
+build/
+.dep.inc
