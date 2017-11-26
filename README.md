@@ -28,16 +28,17 @@ tortise.jpg
 turtle.jpg
 zebra.jpg
 ````
-We'll stipulate that aardvark.jpg is the same image as anteater.jpg, and tortise.jpg 
-is the same image as turtle.jpg. They need not be exact duplicates&mdash;aardvark.jpg 
-could be a resized copy of anteater.jpg, or tortise.jpg could be a copy of turtle.jpg 
-with increased JPEG compression, for example.
+Also assume (for the sake of the example) that aardvark.jpg and anteater.jpg 
+are the same image, as are tortise.jpg and turtle.jpg. They need not be exact 
+duplicates&mdash;aardvark.jpg might be a resized copy of anteater.jpg, or 
+tortise.jpg might be a copy of turtle.jpg with increased JPEG compression.
 
 Run the imgmatch command:
 ```` bash
 $ imgmatch
 ````
-Imgmatch creates a subdirectory named 'matches':
+When there are no command arguments, **imgmatch** creates a subdirectory named 
+'matches' in the current working directory:
 ```` bash
 $ ls
 aardvark.jpg
@@ -54,7 +55,7 @@ $ ls matches
 m0
 m1
 ````
-These contain symbolic links to sets of files that appear to be duplicate images:
+These contain symbolic links the files that appear to be duplicate images:
 ```` bash
 $ ls matches/m0
 aardvark.jpg
@@ -63,44 +64,21 @@ $ ls matches/m1
 tortise.jpg
 turtle.jpg
 ````
-Note: these are not copies of the files in the 'images' directory; they are symbolic links to the actual image files.
+**Note: these are not copies of the files in the 'images' directory; they are 
+symbolic links to the actual image files.**
 
-Using your preferred image viewer, browse these links. This is typically done by 
-clicking on the links in Finder (macOS). If they are, in your judgement, duplicates 
-(imgmatch occasionally produces false positive results) decide which you want to 
-keep and delete the rest.
+If we open the links in an image viewer by double-clicking on them in the 
+Finder (macOS), we can see the images and decide which to keep and which do 
+delete. See below, in [Dealing with match results](#dealing-with-match-results)
+for convenient ways to delete the images.
 
-Important: don't delete the symbolic links in 'm0' and 'm1'. Delete the original 
-image files in the parent directory 'images'. Let's say we decided to keep 
-aardvark.jpg and tortise.jpg:
-
-```` bash
-$ ls
-aardvark.jpg
-anteater.jpg
-giraffe.jpg
-matches
-tortise.jpg
-turtle.jpg
-zebra.jpg
-$ rm anteater.jpg turtle.jpg
-````
-
-Now delete 'matches' and its subdirectories to clean up the links:
+When we're finished, we can delete 'matches' and its subdirectories to clean up
+the links, either with a command:
 
 ```` bash
 $ rm -rf matches
-$ ls
-aardvark.jpg
-giraffe.jpg
-tortise.jpg
-zebra.jpg
 ````
-Some viewers make the task of deleting selected files much easier, avoiding the need to delete 
-them from the command line. For example, Xee (a popular viewer for macOS) allows 
-you to delete the image currently being displayed (command+delete or 
-File > Move to Trash). Even if you opened the image from a symbolic link, 
-this will delete the actual image file (the target of the link).
+Or using the finder to put the matches folder in the trash.
 
 ### Search directories and targets
 
