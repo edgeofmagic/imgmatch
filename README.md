@@ -1,5 +1,8 @@
 # Imgmatch
 
+***Note: this project is a work in progress. In particular, this README file
+is not complete and may not be in sync with the code.***
+
 ## A program for finding duplicate images
 
 ### Features
@@ -202,7 +205,8 @@ anteater.jpg
 
 > "There is no command line interface so bad 
 > that it can't be made worse by adding a GUI"
-&mdash;Me
+
+&mdash;The author
 
 I *really* didn't want to add a GUI. I've used image duplicate-finding
 applications with GUIs, and their built-in image viewers are never as good as
