@@ -330,7 +330,7 @@ Shows the version of imgmatch being executed.
 
 #### Dependencies
 
-##### Boost (v 1.63 or later)
+#### Boost (v 1.63 or later)
 
 Specifically, imgmatch uses boost program options and file system libraries.
 Download from [http://boost.org], build and install according to the 
