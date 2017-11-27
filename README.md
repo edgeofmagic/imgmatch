@@ -453,7 +453,20 @@ Given images a and b, we have:
 
 * B -  the histogram for b, with bins B</sup><sub>i</sub>
 
-* &#956;<sub>i</sub> = ((A<sub>i</sub> / N<sub>a</sub>) + (B<sub>i</sub> / N<sub>b</sub>)) / 2
+* &#956;<sub>i</sub> = ((A<sub>i</sub> / N<sub>a</sub>) + 
+(B<sub>i</sub> / N<sub>b</sub>)) / 2
 
-* dist = &#931;<sub>i</sub> (((A<sub>i</sub>/N<sub>a</sub>) - (B<sub>i</sub>/N<sub>b</sub>))<sup>2</sup> / &#956;<sub>i</sub>)
+* dist = &#931;<sub>i</sub> (((A<sub>i</sub>/N<sub>a</sub>) - 
+(B<sub>i</sub>/N<sub>b</sub>))<sup>2</sup> / &#956;<sub>i</sub>)
 for i = 0 .. 4095, where  &#956;<sub>i</sub> &ne; 0
+
+As a distance measure, smaller values indicate greater similarity between
+the histograms. A distance of zero indicates identical histograms.
+
+Imgmatch's default threshold for a "match"&mdash;considering the images to 
+be probable duplicates&mdash;is 0.1. If you find that an excessive number of
+false positives (matches containing dissimilar images) are geing generated,
+try decreasing the match value with the -m option. Conversely, if images that
+you consider to be duplicates are not being recognized by imgmatch, try 
+increasing the threshold.
+
