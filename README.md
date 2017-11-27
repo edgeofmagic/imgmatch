@@ -469,8 +469,8 @@ watermarks are subtle&mdash;translucent effects don't effect matching as much
 as solid colors.
 
 Different image sets pose different challenges. For example, a sequence of 
-images from a fashion modelling shoot will often have the same background, and 
-subject material, where the only difference is in poses, or subtle changes to
+images from a fashion modelling shoot will often have the same background and 
+subject material, where the only difference is in poses or subtle changes to
 lighting. Under these circumstances, it's usually best to set the threshold
 lower, since the histograms of the images will be closer. If necessary, you can
 set the threshold to 0, which will usually only match exact duplicates. 
