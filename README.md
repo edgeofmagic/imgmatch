@@ -454,11 +454,8 @@ N<sub>a</sub>, the number of pixels in a
 
 A, the histogram for A, with bins A</sup><sub>i</sub>, where 0 <= i < 4096
 
-&#956;<sub>i</sub> = ( (A<sub>i</sub> / N<sub>a</sub>) + (B<sub>i</sub> / N<sub>b</sub>) ) / 2
+&#956;<sub>i</sub> = ((A<sub>i</sub> / N<sub>a</sub>) + (B<sub>i</sub> / N<sub>b</sub>)) / 2
 
-dist = 	&#931;<sub>i</sub> (A<sub>i</sub> - B<sub>i</sub>)<sup>2</sup> / &#956;<sub>i</sub>
+dist = 	&#931;<sub>i</sub> ((A<sub>i</sub> - B<sub>i</sub>)<sup>2</sup> / &#956;<sub>i</sub>)
 
-Values of i where &#956;<sub>i</sub> = 0 are omitted from the sum.
-
-
-
+for i = 0 .. 4095, where  &#956;<sub>i</sub> &ne; 0
