@@ -431,28 +431,25 @@ measure between the histograms.
 
 The histograms have 4096 bins. Each RGB pixel is mapped to a bin as follows:
 
-Consider the bins of the histogram organized as a three-dimensional cube, each
-dimension having 16 bins:
+* Interpret the bins of the histogram as a three-dimensional cube, each
+dimension having 16 bins. 
 
-bins[i, j, k] where i, j, k are > 0 and < 16
+* Given a pixel (r, g, b) with channel values from 0 to 255, scale the values to
+the cube dimensions, dividing by 16. 
 
-The RGB color channels are 8-bit unsigned numbers. Divide each channel by 16
-to scale it to the cube dimension.
-
-A pixel (r, g, b) maps to a bin by scaling the pixel color channel values
-(unsigned 8-bit values from 0 to 255) to array indices, by dividing by 16.
-
-bins[ red / 16, green / 16, blue / 16 ]
+* Interpret the scaled pixel values (r', g', b') as indices into the cube.
 
 For a given image, each bin contains the count of pixels in the image that
-mapped to that bin.
+map to that bin.
 
-When calculating the distance, the bins are viewed as a vector of 4096 bins.
+When calculating the distance, the bins are interpreted as a vector of 4096 bins.
 Given images a and b, we have:
 
 N<sub>a</sub>, the number of pixels in a
+N<sub>b</sub>, the number of pixels in b
 
-A, the histogram for A, with bins A</sup><sub>i</sub>, where 0 <= i < 4096
+A, the histogram for a, with bins A</sup><sub>i</sub>
+B, the histogram for b, with bins B</sup><sub>i</sub>
 
 &#956;<sub>i</sub> = ((A<sub>i</sub> / N<sub>a</sub>) + (B<sub>i</sub> / N<sub>b</sub>)) / 2
 
