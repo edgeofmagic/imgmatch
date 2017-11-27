@@ -383,7 +383,7 @@ Imgmatch builds a histogram of color values for each image involved in a search.
 It compares image histograms pairwise, calculating a Chi-Squared distance 
 measure between the histograms being compared.
 
-A histograms has 4096 bins. Each RGB pixel is mapped to a bin as follows:
+A histogram has 4096 bins. Each RGB pixel is mapped to a bin as follows:
 
 * Interpret the bins of the histogram as a three-dimensional cubical array, each
 dimension having 16 bins. 
@@ -429,3 +429,72 @@ show the resulting distance for all comparisons being made. Knowing the distance
 measures for a set of images (particularly when there are false negatives) can 
 be useful when adjusting the match threshold.
 
+### How well does it work?
+
+If images are exact duplicates, it works 100% of the time. Those aren't the
+interesting cases, though.
+
+* **Resized images**&mdash;Unless the resizing is egregious, imgmatch works
+quite well at finding copies of images that have been resized. Distance numbers
+are often around 0.01 or less for JPEG images that have been resampled to 50%
+of their original size, when compared to the original image.
+
+* **Rotating or flipping**&mdash;Rotation has no effect on the histogram, so
+rotated or flipped images will be considered to be exact matches of their 
+originals.
+
+* **Image encoding/format changes**&mdash;This depends, of course on how the
+format change was performed. If a JPEG image is rendered into a buffer which is
+then saved to a lossless format (e.g., PNG on uncompressed BMP), the distance
+will be very close to zero. Going from PNG to jpeg, the result will depend on
+how much compression is used to create the JPEG image. Generally, the distance
+is low (<0.1) unless the compression is harsh enough to create obvious visible
+artifacts.
+
+* **Grayscale compared to RGB**&mdash;When building the histogram for a
+grayscale image, imgmatch populates the histogram bins as if each grayscale
+pixel were an RGB pixel with equal values in each channel, allowing grayscale
+images to be compared with color images. If a color image is completely
+de-saturated, saved, and then converted to a grayscale image, those two
+images (the de-saturated RGB and the grayscale) will match exactly.
+
+* **Cropping**&mdash;It depends on how much is cropped, and whether the 
+histogram of the cropped part is similar to the overall image. An image 
+subjected to minor cropping will usually match the original.
+
+* **Watermarks or other artifacts**&mdash;Sometimes images have
+been altered by the addition of watermarks or caption text. The extent to which
+this affects matching depends on the size and nature of the artifact. Many 
+watermarks are subtle&mdash;translucent effects don't effect matching as much
+as solid colors.
+
+Different image sets pose different challenges. For example, a sequence of 
+images from a fashion modelling shoot will often have the same background, and 
+subject material, where the only difference is in poses, or subtle changes to
+lighting. Under these circumstances, it's usually best to set the threshold
+lower, since the histograms of the images will be closer. If necessary, you can
+set the threshold to 0, which will usually only match exact duplicates. 
+Of course, it's theoretically possible to have to two significantly different
+images with identical (or nearly identical) histograms, but, with images of 
+significant size and resolution, the probability is very low.
+
+### TO DO list
+
+I don't know how much time and energy I'll have to commit to these, but here are
+some things I'm considering:
+
+* Multi-threading for better performance. The process of building histograms
+can take a while for large numbers of large images, but most of that time 
+is in image decoding (particularly for JPEG images). The actual cost of 
+building histograms themselves is relatively low.
+
+* Porting to Linux and Windows.
+
+* Design a more human-friendly way of browsing and deleting duplicates. Despite
+my whining about GUIs, this kind of application really needs one. The current
+project started as an experiment using histograms for image comparison. I was
+surprised at how well Chi-Squared distance worked for finding duplicates, and 
+decided to try making a practical, usable (if less than ideal) solution. I'm
+thinking about using node.js to drive a web-based front end, calling the native
+C++ code from node to do the calculations. I don't know that world very well, so
+it might be a while.
