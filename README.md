@@ -39,8 +39,7 @@ $ imgmatch
 ````
 When there are no command arguments, **imgmatch** searches for duplicate images
 (JPEG, BMP, or PNG) in the current working directory. If any duplicates are
-found, imgmatch creates a subdirectory named 'matches' in the current working 
-directory:
+found, imgmatch creates a subdirectory named 'matches':
 ```` bash
 $ ls
 aardvark.jpg
@@ -59,18 +58,16 @@ m1
 ````
 These contain symbolic links the files that appear to be duplicate images:
 ```` bash
-$ ls matches/m0
-aardvark.jpg
-anteater.jpg
-$ ls matches/m1
-tortise.jpg
-turtle.jpg
+$ ls -l matches/m0
+lrwxr-xr-x  1 dcurtis  staff  49 Nov 22 19:36 aardvark.jpg -> /Users/dcurtis/images/aardvark.jpg
+lrwxr-xr-x  1 dcurtis  staff  49 Nov 22 19:36 anteater.jpg -> /Users/dcurtis/images/anteater.jpg
+$ ls -l matches/m1
+lrwxr-xr-x  1 dcurtis  staff  49 Nov 22 19:36 tortise.jpg -> /Users/dcurtis/images/tortise.jpg
+lrwxr-xr-x  1 dcurtis  staff  49 Nov 22 19:36 turtle.jpg -> /Users/dcurtis/images/turtle.jpg
 ````
-**Note: these are not copies of the files in the 'images' directory; they are 
-symbolic links to the actual image files.**
 
 If we open the links in an image viewer by double-clicking on them in the 
-Finder (macOS), we can see the images and decide which to keep and which do 
+Finder (macOS), we can see the images and decide which to keep and which to 
 delete. See below, in [Dealing with match results](#dealing-with-match-results)
 for convenient ways to delete the images.
 
@@ -78,6 +75,7 @@ When we're finished, we can delete 'matches' and its subdirectories to clean up
 the links, either with a command:
 
 ```` bash
+$ cd ~/images
 $ rm -rf matches
 ````
 or by using the Finder to put the matches folder in the trash.
@@ -198,9 +196,9 @@ was terrible.
 The solution I settled on is simple, and it provides a relatively smooth
 workflow when de-duping large image sets. When imgmatch finds set of matching
 images, it creates a new subdirectory and puts symbolic links to the image files
-in that directory. I open the results directory in the Finder (macOS), and
-open the images with a viewer by double-clicking on the symbolic links. Decide
-what to keep and what to delete by browsing the images visually.
+in that directory. Navigate to the results directory in the Finder (macOS), and
+open the images with a viewer by double-clicking on the symbolic links, the 
+decide what to keep and what to delete.
 
 #### Deleting unwanted duplicates
 
@@ -211,11 +209,13 @@ finished, to clean up).
 ##### With the viewer
 
 Some image viewers allow you to delete images directly within the viewer. My 
-favorite viewer (Xee) does this (with command-delete, or from the 
+favorite viewer (Xee<sup>3</sup> - [https://theunarchiver.com/xee]) supports 
+this capability (via command-delete, or from the 
 menu&mdash;File > Move to Trash). The most important thing to note is this: *if
 you open an image by clicking on a symbolic link, and then delete it with Xee,
 it will delete the target of the symbolic link (the image file itself), not
-the link.* Other viewers may not do this, or may not delete images at all.
+the link.* This feature makes using imgmatch and Xee<sup>3</sup> together a 
+reasonably smooth workflow for eliminating duplicate images.
 
 ##### From the command line
 
