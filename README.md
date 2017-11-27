@@ -171,7 +171,7 @@ aardvark.jpg
 anteater.jpg
 ````
 
-### Dealing with Match Results
+### Dealing with match results
 
 > There is no command line interface so bad 
 > that it can't be made worse by adding a GUI
@@ -263,7 +263,7 @@ name. A long-name option is preceeded by two hypens on the command line;
 abbreviations are preceeded by a single hyphen.
 
 ### Options
-#### Set Target
+#### Set target
 **--target** *path* <br/>
 **-t** *file*
 
@@ -272,7 +272,7 @@ search paths. If *path* is a directory, all images in that directory will be
 compared with images in the search directories. If no target is specified, each 
 search path will be searched for matches within the search path.
 
-#### Set Results Location
+#### Set results location
 **--results** *path* <br/>
 **-r** *path*
 
@@ -286,7 +286,7 @@ with zero) to the last element of *path*. The number will be incremented until
 a name is generated that has no corresponding existing file or directory. 
 The default value for *path* is './matches'.
 
-#### Set Limit
+#### Set limit
 **--limit** *num* <br/>
 **-l** *num*
 
@@ -297,7 +297,7 @@ number of images in the target directory that will be compared with search
 directory contents to *num*. The default value is 1000. If *num* is negative, no
 limit will be imposed.
 
-#### Set Match Threshold
+#### Set match threshold
 **--match** *num* <br/>
 **-m** *num*
 
@@ -307,7 +307,7 @@ identical, the distance will be 0. Files are considered to match if their
 distance measure is less than or equal to the threshold. The default value 
 is 0.1.
 
-#### Set Verbosity Level
+#### Set verbosity level
 **--spew** \[*num*\] <br/>
 **-s** \[*num*\]
 
