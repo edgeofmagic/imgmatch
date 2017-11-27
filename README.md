@@ -311,17 +311,17 @@ files will be considered a match. The default value is 0.1.
 **--spew** \[*num*\] <br/>
 **-s** \[*num*\]
 
-Sets the level of verbosity for generated commentary. Valid values are 0, 1 and 
-2. Level 0 produces no output unless an error condition is occurred. Level 1 
-produces a moderate amount, announcing the target and search directories as 
-they are being searched, and announcing matches when found. Level 2 produces 
-voluminous output. For example, it announces every comparison as it is being 
-made, along with the resuling correlation coefficient from the comparison. The 
+Sets the level of verbosity for generated commentary. Valid values 
+are 0, 1 and 2. Level 0 produces no output unless an error condition is 
+occurred. Level 1 produces a moderate amount, announcing the target and search 
+directories as they are being searched, and announcing matches when found. 
+Level 2 produces voluminous output. For example, it announces every comparison 
+as it is being made, along with the resulting distance from the comparison. The 
 default level is 0. If the verbose option is specified but no level is given, 
 the level will be set to 1.
 
 #### Show version
-**-v**
+**-v** <br/>
 **--version**
 
 Shows the version of imgmatch being executed.
