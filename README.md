@@ -423,3 +423,42 @@ If all is well, the executable named imgmatch will be created in build. To make
 it generally available, put a copy of imgmatch (or a link to it) in a directory 
 in your path.
 
+### How it works
+
+Imgmatch builds a histogram of color values for each image involved in a search. 
+It compares image histograms pairwise, by calculating a Chi-Squared distance 
+measure between the histograms.
+
+The histograms have 4096 bins. Each RGB pixel is mapped to a bin as follows:
+
+Consider the bins of the histogram organized as a three-dimensional cube, each
+dimension having 16 bins:
+
+bins[i, j, k] where i, j, k are > 0 and < 16
+
+The RGB color channels are 8-bit unsigned numbers. Divide each channel by 16
+to scale it to the cube dimension.
+
+A pixel (r, g, b) maps to a bin by scaling the pixel color channel values
+(unsigned 8-bit values from 0 to 255) to array indices, by dividing by 16.
+
+bins[ red / 16, green / 16, blue / 16 ]
+
+For a given image, each bin contains the count of pixels in the image that
+mapped to that bin.
+
+When calculating the distance, the bins are viewed as a vector of 4096 bins.
+Given images a and b, we have:
+
+N<sub>a</sub>, the number of pixels in a
+
+A, the histogram for A, with bins A</sup><sub>i</sub>, where 0 <= i < 4096
+
+&#956;<sub>i</sub> = ( (A<sub>i</sub> / N<sub>a</sub>) + (B<sub>i</sub> / N<sub>b</sub>) ) / 2
+
+dist = 	&#931;<sub>i</sub> (A<sub>i</sub> - B<sub>i</sub>)<sup>2</sup> / &#956;<sub>i</sub>
+
+Values of i where &#956;<sub>i</sub> = 0 are omitted from the sum.
+
+
+
