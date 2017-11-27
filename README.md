@@ -1,8 +1,5 @@
 # Imgmatch
 
-***Note: this project is a work in progress. In particular, this README file
-is not complete and may not be in sync with the code.***
-
 ## A program for finding duplicate images
 
 ### Features
@@ -212,10 +209,11 @@ Some image viewers allow you to delete images directly within the viewer. My
 favorite viewer (Xee<sup>3</sup> - [https://theunarchiver.com/xee]) supports 
 this capability (via command-delete, or from the 
 menu&mdash;File > Move to Trash). The most important thing to note is this: *if
-you open an image by clicking on a symbolic link, and then delete it with Xee,
-it will delete the target of the symbolic link (the image file itself), not
-the link.* This feature makes using imgmatch and Xee<sup>3</sup> together a 
-reasonably smooth workflow for eliminating duplicate images.
+you open an image by clicking on a symbolic link, and then delete it with 
+Xee<sup>3</sup>, it will delete the target of the symbolic link (the image 
+file itself), not the link.* This feature makes using imgmatch and 
+Xee<sup>3</sup> together a reasonably smooth workflow for eliminating 
+duplicate images.
 
 ##### From the command line
 
