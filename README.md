@@ -206,7 +206,7 @@ finished, to clean up).
 ##### With the viewer
 
 Some image viewers allow you to delete images directly within the viewer. My 
-favorite viewer (Xee<sup>3</sup> - [https://theunarchiver.com/xee]) supports 
+favorite viewer&mdash;[Xee<sup>3</sup>](https://theunarchiver.com/xee) supports 
 this capability (via command-delete, or from the 
 menu&mdash;File > Move to Trash). The most important thing to note is this: *if
 you open an image by clicking on a symbolic link, and then delete it with 
@@ -333,22 +333,21 @@ Shows the version of imgmatch being executed.
 #### Boost (v 1.63 or later)
 
 Specifically, imgmatch uses boost program options and file system libraries.
-Download from [http://boost.org], build and install according to the 
-instructions in the download.
+Build and install according to the instructions in the 
+[download](http://boost.org).
 
 #### libjpeg (release 9b)
 
-Imgmatch uses libjpeg to decode JPEG images. Download from 
-[http://www.ijg.org/files/], build and install according to instructions in the 
-download.
+Imgmatch uses libjpeg to decode JPEG images. Build and install according to 
+instructions in the [download](http://www.ijg.org/files/).
 
 #### LodePNG
 
 Imgmatch uses the LodePNG library to decode PNG images. No download is needed, 
 as the necessary files are included in the imgmatch repository. LodePNG is
 the property of Lode Vandevenne, and is used here in accordance with its 
-licensing terms. The project site can be found at [http://lodev.org/lodepng],
-and the repository at [https://github.com/lvandeve/lodepng].
+licensing terms. Links: [project site](http://lodev.org/lodepng) and 
+[repository](https://github.com/lvandeve/lodepng).
 
 #### C++ Bitmap Library
 
@@ -356,9 +355,9 @@ Imgmatch uses the C++ Bitmap Library to load BMP images, and as the internal
 representation of all decoded images. No download is needed, as the
 only file (bitmap_image.hpp) is included in the imgmatch repository. 
 The C++ Bitmap Library is the property of Arash Partow, and is used here in 
-accordance with its licensing terms. The project website for C++ Bitmap Library 
-can be found at [http://www.partow.net/programming/bitmap/index.html], and 
-the repository at [https://github.com/ArashPartow/bitmap].
+accordance with its licensing terms. Links: 
+[project site](http://www.partow.net/programming/bitmap/index.html) and
+[repository](https://github.com/ArashPartow/bitmap).
 
 #### Building imgmatch
 
