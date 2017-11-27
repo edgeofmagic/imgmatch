@@ -37,7 +37,7 @@ Run the imgmatch command:
 ```` bash
 $ imgmatch
 ````
-When there are no command arguments, **imgmatch** searches for duplicate images
+When there are no command arguments, imgmatch searches for duplicate images
 (JPEG, BMP, or PNG) in the current working directory. If any duplicates are
 found, imgmatch creates a subdirectory named 'matches':
 ```` bash
@@ -230,7 +230,7 @@ rmlt() {
 }
 ````
 You can delete the image file by executing the function/command
-**rmlt** (remove link target) on the link:
+rmlt (remove link target) on the link:
 
 ````bash
 $ cd ~/image/matches/m0
@@ -238,7 +238,7 @@ $ rmlt anteater.jpg
 ````
 
 You may prefer to use the GNU version of readlink, available from Homebrew or
-MacPorts in the GNU coreutils package. It gets renamed to **greadlink**
+MacPorts in the GNU coreutils package. It gets renamed to greadlink
 to avoid conflict with the native macOS readlink. If so, replace the function
 in .bash_profile with the following:
 
@@ -290,77 +290,28 @@ number (starting with zero) to the last element of *path*. The number will be
 incremented until a name is generated that has no corresponding existing file. 
 The default value for *path* is './matches'.
 
-Examples:
-
-Assume we start in our home directory with no 'matches' subdirectory:
-
-```` bash
-$ cd ~
-$ ls
-images
-more_images
-````
-
-If we run imgmatch, it will create the directory './matches':
-
-```` bash
-$ imgmatch images more_images
-$ ls
-images
-matches
-more_images
-````
-Assuming that 'matches' is not empty, if we run imgmatch again, it will create 
-a new subdirectory named 'matches0':
-
-```` bash
-$ imgmatch images more_images
-$ ls
-images
-matches
-matches0
-more_images
-````
-If we keep doing this, imgmatch will create './matches1', './matches2', and so on.
-
-We can explicity specify a different path:
-
-```` bash
-$ rm -rf matches*
-$ imgmatch images more_images --results match_results
-$ ls
-images
-match_results
-more_images
-````
-If the results path already exists, and is not an empty directory, imgmatch 
-will use the same name-generation strategy shown earlier with 'matches':
-
-```` bash
-$ imgmatch images more_images --results match_results
-$ ls
-images
-match_results
-match_results0
-more_images
-````
 #### Set Limit
 **--limit** *num* <br/>
 **-l** *num*
 
 Sets the maximum number of images in each search directory that will be compared 
-with the target. If a target directory is specified, limit also sets the maximum number of images in the target directory that will be compared with search directory contents. The default value is 1000.
+with the target. If a target directory is specified, limit also sets the maximum 
+number of images in the target directory that will be compared with search 
+directory contents. The default value is 1000. If the value is negative, no
+limit will be imposed.
 
 #### Set Match Threshold
 **--match** *num* <br/>
 **-m** *num*
 
 Sets the match threshold, where *num* is a non-negative floating-point number. 
-File comparisons generate a numeric distance value. If two images are identical, the distance will be 0. The match option sets threshold at which two compared files will be considered a match. The default value is 0.1. 
+File comparisons generate a numeric distance value. If two images are identical, 
+the distance will be 0. The match option sets threshold at which two compared 
+files will be considered a match. The default value is 0.1. 
 
 #### Set Verbosity Level
-**--verbose** \[*num*\] <br/>
-**-v** \[*num*\]
+**--spew** \[*num*\] <br/>
+**-s** \[*num*\]
 
 Sets the level of verbosity for generated commentary. Valid values are 0, 1 and 
 2. Level 0 produces no output unless an error condition is occurred. Level 1 
@@ -370,6 +321,12 @@ voluminous output. For example, it announces every comparison as it is being
 made, along with the resuling correlation coefficient from the comparison. The 
 default level is 0. If the verbose option is specified but no level is given, 
 the level will be set to 1.
+
+#### Show version
+**-v**
+**--version**
+
+Shows the version of imgmatch being executed.
 
 ### Build and install
 
@@ -465,8 +422,13 @@ the histograms. A distance of zero indicates identical histograms.
 
 Imgmatch's default threshold for a "match"&mdash;considering the images to 
 be probable duplicates&mdash;is 0.1. If you find that an excessive number of
-false positives (matches containing dissimilar images) are geing generated,
+false positives (matches containing dissimilar images) are being generated,
 try decreasing the match value with the -m option. Conversely, if images that
 you consider to be duplicates are not being recognized by imgmatch, try 
 increasing the threshold.
+
+If the verbosity level is set to maximum with option -s2, imgmatch will
+show the resulting distance for all comparisons being made. Knowing the distance
+measures for a set of images (particularly when there are false negatives) can 
+be useful when adjusting the match threshold.
 
