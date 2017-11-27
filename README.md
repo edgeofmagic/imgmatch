@@ -37,8 +37,10 @@ Run the imgmatch command:
 ```` bash
 $ imgmatch
 ````
-When there are no command arguments, **imgmatch** creates a subdirectory named 
-'matches' in the current working directory:
+When there are no command arguments, **imgmatch** searches for duplicate images
+(JPEG, BMP, or PNG) in the current working directory. If any duplicates are
+found, imgmatch creates a subdirectory named 'matches' in the current working 
+directory:
 ```` bash
 $ ls
 aardvark.jpg
