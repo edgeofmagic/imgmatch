@@ -446,13 +446,14 @@ When calculating the distance, the bins are interpreted as a vector of 4096 bins
 Given images a and b, we have:
 
 N<sub>a</sub>, the number of pixels in a
+
 N<sub>b</sub>, the number of pixels in b
 
 A, the histogram for a, with bins A</sup><sub>i</sub>
+
 B, the histogram for b, with bins B</sup><sub>i</sub>
 
 &#956;<sub>i</sub> = ((A<sub>i</sub> / N<sub>a</sub>) + (B<sub>i</sub> / N<sub>b</sub>)) / 2
 
 dist = 	&#931;<sub>i</sub> ((A<sub>i</sub> - B<sub>i</sub>)<sup>2</sup> / &#956;<sub>i</sub>)
-
 for i = 0 .. 4095, where  &#956;<sub>i</sub> &ne; 0
