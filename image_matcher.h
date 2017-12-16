@@ -28,6 +28,8 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <set>
 #include <algorithm>
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/path.hpp"
@@ -40,8 +42,6 @@ class image_matcher
 {
 public:
 
-	using string_vec = std::vector<std::string>;
-	
 	static constexpr double
 	default_match_threshold()
 	{
@@ -61,25 +61,6 @@ public:
 		return 1000;
 	}
 
-	using match_result = std::pair<fs::path, double>;
-	using match_result_set = 
-		std::unordered_multimap<fs::path, match_result, 
-								boost::hash<boost::filesystem::path>>;
-
-	using path_vector = std::vector<fs::path>;
-	using hist_vector = std::vector<rgb_image_hist>;
-
-	struct image_dir
-	{
-		image_dir(fs::path const& path)
-		: dir_path{path}
-		{
-		}
-		fs::path dir_path;
-		path_vector image_paths;
-		hist_vector image_histograms;
-	};
-
 	/*
 	 *	Initial values will all be set from command-line options.
 	 */
@@ -94,7 +75,8 @@ public:
 	use_target_{false},
 	target_is_dir_{false},
 	search_paths_{},
-	annotate_links_{false}
+	annotate_links_{false},
+	exhaustive_{false}
 	{
 	}
 
@@ -106,11 +88,9 @@ public:
 
 	bool set_target(std::string const& target_string);
 
-	inline double
-	match_threshold() const
-	{
-		return match_threshold_;
-	}
+	void set_exhaustive(bool value);
+	
+	using string_vec = std::vector<std::string>;
 
 	bool set_search_paths(string_vec const& search_path_strings);
 
@@ -119,14 +99,125 @@ public:
 	bool set_results_path(std::string const& results_path_string);
 
 	void show_options() const;
-	
+
 	inline int
 	verbose() const
 	{
 		return verbose_;
 	}
 
-	void execute() const;
+	inline double
+	match_threshold() const
+	{
+		return match_threshold_;
+	}
+
+	inline int
+	limit() const
+	{
+		return limit_;
+	}
+
+	inline fs::path const&
+	results_path() const
+	{
+		return results_path_;
+	}
+
+	inline fs::path const&
+	target_path() const
+	{
+		return target_path_;
+	}
+
+	inline bool
+	use_target() const
+	{
+		return use_target_;
+	}
+
+	inline bool
+	is_target_dir() const
+	{
+		return target_is_dir_;
+	}
+
+	inline std::vector<fs::path> const&
+	search_paths() const
+	{
+		return search_paths_;
+	}
+
+	inline bool
+	exhaustive() const
+	{
+		return exhaustive_;
+	}
+
+	void execute();
+
+private:
+	
+	using path_ptr = std::shared_ptr<fs::path>;
+	using path_ptr_vec = std::vector<path_ptr>;
+	
+	struct path_ptr_equals
+	{
+		bool operator()(path_ptr const& a, path_ptr const& b) const
+		{
+			return *a == *b;
+		}
+	};
+	
+	struct path_ptr_hash
+	{
+		std::size_t operator()(path_ptr const& p) const
+		{
+			return boost::filesystem::hash_value(*p);
+		}
+	};
+	
+	struct path_ptr_less
+	{
+		bool operator()(path_ptr const& a, path_ptr const& b) const
+		{
+			return a->compare(*b) < 0;
+		}
+	};
+	
+	using path_set = std::unordered_set<path_ptr, path_ptr_hash, path_ptr_equals>;
+	using path_hist_map = std::unordered_map<path_ptr, rgb_image_hist>;
+	using match_set = std::set<path_ptr, path_ptr_less>;
+	using match_set_ptr = std::shared_ptr<match_set>;
+	using match_set_map = std::unordered_map<path_ptr, match_set_ptr>;
+	using match_set_set = std::unordered_set<match_set_ptr>;
+
+
+	inline rgb_image_hist const& histogram_at(path_hist_map::const_iterator it) const
+	{
+		return it->second;
+	}
+	
+	inline match_set_ptr match_set_at(match_set_map::iterator it) const
+	{
+		return it->second;
+	}
+	
+	inline path_ptr path_at(match_set_map::const_iterator it) const
+	{
+		return it->first;
+	}
+	
+	inline path_ptr path_at(path_hist_map::const_iterator it) const
+	{
+		return it->first;
+	}
+	
+	inline bool is_end(match_set_map::iterator it) 
+	{
+		return it == match_set_map_.end();
+	}
+	
 
 	bool split_filename(std::string const& fname,
 						std::string& base,
@@ -185,23 +276,12 @@ public:
 						 suffix) != bmp_suffixes.end();
 	}
 	
-	void initialize(image_dir& dir) const;
-
 	bool read_image_file(fs::path const& fpath, bitmap_image& image) const;
+
+	void compare(path_hist_map::const_iterator a, path_hist_map::const_iterator b);
 	
-	void find_matches(fs::path const& target, 
-					  rgb_image_hist const& target_hist,
-					  image_dir const& search, 
-					  match_result_set& results) const;
-
-	void find_matches(image_dir const& search, match_result_set& results) const;
-
-	void find_images(image_dir& idir) const;
-
-	void build_histograms(image_dir& idir) const;
-
-	void generate_symlinks(match_result_set const& results) const;
-
+	void generate_symlinks(path_hist_map const& hist_map) const;	
+	
 	bool create_dir(fs::path const& dir_path) const;
 
 	bool create_symlink(fs::path const& link_target,
@@ -211,11 +291,9 @@ public:
 	fs::path find_available_name(fs::path const& results_parent,
 								 fs::path const& dir_filename) const;
 
-	match_result_set::const_iterator
-	create_matching_links(match_result_set::const_iterator it,
-						  match_result_set::const_iterator end_it,
-						  fs::path const& results_path,
-						  std::size_t set_count) const;
+	void create_matching_links(std::vector<path_ptr> const& paths, 
+							   std::vector<double> const& distances, 
+							   std::size_t set_index) const;
 
 	static const std::vector<std::string> jpeg_suffixes;
 
@@ -223,7 +301,13 @@ public:
 
 	static const std::vector<std::string> bmp_suffixes;
 
-private:
+	void build_histograms(fs::path const& dir, path_hist_map& hmap);
+	
+	void build_histogram(path_ptr p, path_hist_map& hmap);
+
+	void find_matches(path_hist_map const& hmap);
+	
+	void find_matches(path_hist_map const& target_hmap, path_hist_map const& search_hmap);
 
 	double match_threshold_;
 	int limit_;
@@ -234,6 +318,11 @@ private:
 	bool target_is_dir_;
 	std::vector<fs::path> search_paths_;
 	bool annotate_links_;
+	bool exhaustive_;
+	
+	path_set unique_paths_;
+	match_set_map match_set_map_;
+	match_set_set match_sets_;
 
 };
 

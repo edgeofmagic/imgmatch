@@ -34,10 +34,6 @@ namespace po = boost::program_options;
 
 using string_vec = std::vector<std::string>;
 
-/*
- * TODO:
- * 
- */
 int
 main(int argc, char** argv)
 {
@@ -51,7 +47,7 @@ main(int argc, char** argv)
 			"set output verbosity level { 0 | 1 | 2 }")
 	
 		("version,v",
-			po::bool_switch(),
+			po::bool_switch()->default_value(false),
 			"show version")
 	
 		("match,m",
@@ -70,6 +66,10 @@ main(int argc, char** argv)
 		("annotate,a",
 			po::bool_switch(),
 			"annotate link names with distance")
+	
+		("exhaustive,x",
+			po::bool_switch()->default_value(false),
+			"exhaustive match in all search directories")
 					
 		("limit,l", 
 			po::value<int>()->default_value(image_matcher::default_limit()),
@@ -113,9 +113,10 @@ main(int argc, char** argv)
 		return 0;
 	}
 	
-	if (vm.count("version"))
+	if (vm["version"].as<bool>())
 	{
-		std::cout << "imgmatch version " << imgmatch_VERSION_MAJOR << "." << imgmatch_VERSION_MINOR << std::endl;
+		std::cout << "imgmatch version " << imgmatch_VERSION_MAJOR << "." 
+				<< imgmatch_VERSION_MINOR << std::endl;
 	}
 
 	image_matcher matcher;
@@ -159,6 +160,8 @@ main(int argc, char** argv)
 			return 0;
 		}
 	}
+	
+	matcher.set_exhaustive(vm["exhaustive"].as<bool>());
 	
 	assert(vm.count("annotate") > 0);
 	

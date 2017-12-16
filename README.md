@@ -320,6 +320,16 @@ as it is being made, along with the resulting distance from the comparison. The
 default level is 0. If the verbose option is specified but no level is given, 
 the level will be set to 1.
 
+#### Set exhaustive search
+**--exhaustive** \[*num*\] <br/>
+**-x** \[*num*\]
+
+Sets search mode to exhaustive.  During exhaustive search, all images in search 
+directories will be compared with each other for matches. 
+This option is incompatible with the use of a
+search target. If the set target option and set exhaustive search option are
+both used, set exhaustive will be ignored.
+
 #### Show version
 **-v** <br/>
 **--version**

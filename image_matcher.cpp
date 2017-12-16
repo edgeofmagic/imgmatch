@@ -48,7 +48,9 @@ const std::vector<std::string> image_matcher::bmp_suffixes
 	".BMP"
 };
 
-bool image_matcher::split_filename(std::string const& fname, std::string& base, std::string& suffix) const
+bool image_matcher::split_filename(std::string const& fname, 
+								   std::string& base, 
+								   std::string& suffix) const
 {
 	auto pos = fname.find_last_of('.');
 	if (pos != std::string::npos)
@@ -63,190 +65,9 @@ bool image_matcher::split_filename(std::string const& fname, std::string& base, 
 	}
 }
 
-void
-image_matcher::find_matches(fs::path const& target_path,
-							rgb_image_hist const& target_hist,
-							image_dir const& search_dir,
-							match_result_set& matches) const
-{
-	if (verbose_ > 0)
-	{
-		std::cout << std::endl << "searching for images matching "
-				<< target_path << " in " << search_dir.dir_path
-				<< ":" << std::endl;
-	}
-
-	for (auto i = 0ul; i < search_dir.image_paths.size(); ++i)
-	{
-		if (search_dir.image_histograms[i].is_valid())
-		{
-			auto& candidate_path = search_dir.image_paths[i];
-			if (!fs::equivalent(target_path, candidate_path))
-			{
-				auto distance = target_hist.chi_sqr_dist(search_dir.image_histograms[i]);
-				if (verbose_ > 1)
-				{
-					std::cout << "compared " << target_path << " with "
-							<< candidate_path << ": " << distance << std::endl;
-				}
-				if (distance <= match_threshold_)
-				{
-					matches.emplace(target_path,
-									match_result{candidate_path, distance});
-					if (verbose_ > 0)
-					{
-						std::cout << "found match -- " << target_path << " and "
-								<< candidate_path << ": " << distance << std::endl;
-					}
-				}
-			}
-		}
-	}
-}
-
-void
-image_matcher::find_matches(image_dir const& search_dir,
-							match_result_set& results) const
-{
-	// keep track of entries that have matched to avoid redundant comparisons
-	std::unordered_set<std::size_t> matched_items;
-
-	if (verbose_ > 0)
-	{
-		std::cout << "finding matches within: "
-				<< search_dir.dir_path << std::endl;
-	}
-
-	auto& histograms = search_dir.image_histograms;
-	auto& image_paths = search_dir.image_paths;
-
-	for (auto i = 0ul; i < histograms.size(); ++i)
-	{
-		if (histograms[i].is_valid() && matched_items.count(i) == 0)
-		{
-			for (auto j = i + 1; j < histograms.size(); ++j)
-			{
-				if (histograms[j].is_valid() && matched_items.count(j) == 0)
-				{
-					auto distance = histograms[i].chi_sqr_dist(histograms[j]);
-					if (verbose_ > 1)
-					{
-						std::cout << "compared " << image_paths[i].filename()
-								<< " with " << image_paths[j].filename()
-								<< ": " << distance << std::endl;
-					}
-					if (distance <= match_threshold_)
-					{
-						results.emplace(image_paths[i],
-										match_result{image_paths[j], distance});
-						if (verbose_ > 0)
-						{
-							std::cout << "found match -- "
-									<< image_paths[i].filename()
-									<< " and " << image_paths[j].filename()
-									<< ": " << distance << std::endl;
-						}
-
-						matched_items.insert(i);
-						matched_items.insert(j);
-					}
-				}
-			}
-		}
-	}
-}
-
-void
-image_matcher::initialize(image_dir& dir) const
-{
-	find_images(dir);
-	build_histograms(dir);
-}
-
-void
-image_matcher::find_images(image_dir& dir) const
-{
-	dir.image_paths.clear();
-
-	fs::directory_iterator end_iter;
-
-	if (verbose_ > 0)
-	{
-		std::cout << "searching for image files in "
-				<< dir.dir_path << ":" << std::endl;
-	}
-
-	// first, count them so we can reserve the vector 
-	// (to avoid expensive resizing)
-
-	std::size_t count = 0ul;
-
-	for (fs::directory_iterator dir_itr(dir.dir_path);
-		dir_itr != end_iter;
-		++dir_itr)
-	{
-		try
-		{
-			fs::path canonical_path(fs::canonical(dir_itr->path()));
-			if (fs::is_regular_file(canonical_path)
-				&& (is_image_file(canonical_path)))
-			{
-				++count;
-			}
-		}
-		catch (const std::exception & ex)
-		{
-			std::cerr << "'" << dir_itr->path().filename() << "' "
-					<< ex.what() << std::endl;
-		}
-	}
-
-	if (limit_ > 0)
-	{
-		count = limit_;
-	}
-	
-	dir.image_paths.reserve(count);
-
-	count = 0;
-	
-	for (fs::directory_iterator dir_itr(dir.dir_path);
-		dir_itr != end_iter;
-		++dir_itr)
-	{
-		if (limit_ < 0 || count < limit_)
-		{
-			try
-			{
-				fs::path canonical_path(fs::canonical(dir_itr->path()));
-				if (fs::is_regular_file(canonical_path)
-					&& (is_image_file(canonical_path)))
-				{
-					if (verbose_ > 1)
-					{
-						std::cout << "found image file: "
-								<< canonical_path.filename() << std::endl;
-					}
-					dir.image_paths.emplace_back(canonical_path);
-					++count;
-				}
-			}
-			catch (const std::exception & ex)
-			{
-				std::cerr << "'" << dir_itr->path().filename()
-						<< "' " << ex.what() << std::endl;
-			}
-		}
-		else
-		{
-			std::cout << "comparison limit reached in directory " << dir.dir_path << std::endl;
-			break;
-		}
-	}
-}
-
 bool
-image_matcher::read_image_file(fs::path const& image_path, bitmap_image& image) const
+image_matcher::read_image_file(fs::path const& image_path, 
+							   bitmap_image& image) const
 {
 	std::string suffix = this->filename_suffix(image_path);
 	bool result = true;
@@ -256,7 +77,7 @@ image_matcher::read_image_file(fs::path const& image_path, bitmap_image& image) 
 		if (!read_jpeg_file(image_path.string(), image))
 		{
 			if (verbose_ == 1) std::cout << std::endl;
-			std::cerr << "could not read " << image_path
+			std::cerr << "error: could not read " << image_path
 					<< " as a jpeg image" << std::endl;
 			result = false;
 		}
@@ -266,7 +87,7 @@ image_matcher::read_image_file(fs::path const& image_path, bitmap_image& image) 
 		if (!read_png_file(image_path.string(), image))
 		{
 			if (verbose_ == 1) std::cout << std::endl;
-			std::cerr << "could not read " << image_path
+			std::cerr << "error: could not read " << image_path
 					<< " as a png image" << std::endl;
 			result = false;
 		}
@@ -276,7 +97,7 @@ image_matcher::read_image_file(fs::path const& image_path, bitmap_image& image) 
 		if (!read_bmp_file(image_path.string(), image))
 		{
 			if (verbose_ == 1) std::cout << std::endl;
-			std::cerr << "could not read " << image_path
+			std::cerr << "error: could not read " << image_path
 					<< " as a bmp image" << std::endl;
 			result = false;
 		}
@@ -284,57 +105,12 @@ image_matcher::read_image_file(fs::path const& image_path, bitmap_image& image) 
 	else
 	{
 		if (verbose_ == 1) std::cout << std::endl;
-		std::cerr << "unrecognized file extension: "
+		std::cerr << "error: unrecognized file extension: "
 				<< image_path << std::endl;
 		result = false;
 	}
 
 	return result;
-}
-
-void
-image_matcher::build_histograms(image_dir& dir) const
-{
-	if (verbose_ > 0)
-	{
-		std::cout << "building histograms for "
-				<< dir.image_paths.size() << " images in " << dir.dir_path
-				<< ":" << std::endl;
-	}
-
-	// avoid reallocation and copying
-	dir.image_histograms.reserve(dir.image_paths.size());
-
-	for (auto& image_path : dir.image_paths)
-	{
-		if (verbose_ > 1)
-		{
-			std::cout << "building histogram for "
-					<< image_path.filename() << std::endl;
-		}
-		else if (verbose_ == 1)
-		{
-			std::cout << ".";
-			std::cout.flush();
-		}
-		bitmap_image img;
-		
-		if (!read_image_file(image_path, img))
-		{
-			// append a null-constructed histogram, 
-			// to keep histograms and paths aligned
-
-			dir.image_histograms.emplace_back();
-		}
-		else
-		{
-			dir.image_histograms.emplace_back(img);
-		}
-	}
-	if (verbose_ == 1)
-	{
-		std::cout << std::endl;
-	}
 }
 
 void 
@@ -350,7 +126,7 @@ image_matcher::set_target(std::string const& target_string)
 
 	if (!fs::exists(target_path))
 	{
-		std::cerr << "target " << target_string << " not found" << std::endl;
+		std::cerr << "error: target " << target_string << " not found" << std::endl;
 		return false;
 	}
 
@@ -369,22 +145,43 @@ image_matcher::set_target(std::string const& target_string)
 	{
 		if (!fs::is_regular_file(target_path))
 		{
-			std::cerr << "target file " << target_path
+			std::cerr << "error: target file " << target_path
 					<< " is not a regular file" << std::endl;
 			return false;
 		}
 
 		if (!is_image_file(target_path.filename().string()))
 		{
-			std::cerr << "target file " << target_path
+			std::cerr << "error: target file " << target_path
 					<< " is not an image file" << std::endl;
 			return false;
 		}
 	}
 
+	if (exhaustive_)
+	{
+		std::cerr << "warning: exhaustive/x option is incompatible with target," 
+				<< "ignoring exhaustive" << std::endl;
+		exhaustive_ = false;
+	}
+
 	target_path_ = target_path;
 	use_target_ = true;
 	return true;
+}
+
+void image_matcher::set_exhaustive(bool value)
+{	
+	if (value && use_target_)
+	{
+		std::cerr << "warning: exhaustive/x option is incompatible with target," 
+				<< " ignoring exhaustive" << std::endl;
+		exhaustive_ = false;
+	}
+	else
+	{
+		exhaustive_ = value;
+	}
 }
 
 bool
@@ -398,14 +195,14 @@ image_matcher::set_results_path(std::string const& results_dir_string)
 
 	if (!fs::exists(results_parent))
 	{
-		std::cout << "parent of results directory (" << results_dir_string
+		std::cerr << "error: parent of results directory (" << results_dir_string
 				<< ") doesn't exist" << std::endl;
 		return false;
 	}
 
 	if (!fs::is_directory(results_parent))
 	{
-		std::cout << "parent of results directory (" << results_dir_string
+		std::cerr << "error: parent of results directory (" << results_dir_string
 				<< ") isn't a directory" << std::endl;
 		return false;
 	}
@@ -435,61 +232,36 @@ image_matcher::set_search_paths(string_vec const& search_dir_strings)
 		it != search_dir_strings.end();
 		++it)
 	{
-
 		fs::path dir_path(fs::system_complete(fs::path(*it)));
 
 		if (!fs::exists(dir_path))
 		{
-			std::cerr << *it << " not found" << std::endl;
+			std::cerr << "error: " << *it << " not found" << std::endl;
 			return false;
 		}
 		if (!fs::is_directory(dir_path))
 		{
-			std::cerr << *it << " is not a directory" << std::endl;
+			std::cerr << "error: " << *it << " is not a directory" << std::endl;
 			return false;
 		}
-
 		search_paths_.emplace_back(fs::canonical(dir_path));
 	}
 	if (search_paths_.size() < 1)
 	{
-		std::cerr << "no valid search directories were specified" << std::endl;
+		std::cerr << "error: no valid search directories were specified" << std::endl;
 		return false;
 	}
 	return true;
 }
 
 void
-image_matcher::execute() const
+image_matcher::execute()
 {
-	/*
-	 * preconditions:
-	 *      if use_target_ is true then
-	 *          target_path_ exists
-	 *          if target_path_ is a directory then
-	 *              target_is_dir_ is true
-	 *          otherwise, target_path_ appears to be a image file
-	 *      search_dir_paths_.size() > 0
-	 *      for each element of search_dir_paths_
-	 *          element exists
-	 *          element is a directory
-	 *      either:
-	 *          results_dir_path_ exists and is a directory
-	 *      or
-	 *          results_dir_path_ does not exist, but parent is a directory
-	 * 
-	 *      match_threshold_ is set to a legitimate
-	 *      limit_ is either -1 (no limit) or a value > 0
-	 * 
-	 *      all paths are canonical (except for results_dir_path_, 
-	 *		if it doesn't exist)
-	 *       
-	 */
-
-	match_result_set matches;
-
+	path_hist_map search_hist_map;
+	
 	if (use_target_)
 	{
+		path_hist_map target_hist_map;
 		if (target_is_dir_)
 		{
 			/*
@@ -502,54 +274,16 @@ image_matcher::execute() const
 				std::cout << "target " << target_path_ << " is a directory"
 						<< std::endl;
 			}
-
-			image_dir target_dir{target_path_};
-
-			initialize(target_dir);
-
-			if (target_dir.image_histograms.size() < 1)
+			
+			build_histograms(target_path_, target_hist_map);
+			
+			if (target_hist_map.size() < 1)
 			{
-				std::cout << "target directory " << target_path_
+				std::cerr << "warning: target directory " << target_path_
 						<< " contains no image files" << std::endl;
 				return;
 			}
-
-			for (auto it = search_paths_.begin();
-				it != search_paths_.end();
-				++it)
-			{
-				if (!fs::equivalent(target_path_, *it))
-				{
-					image_dir search_dir{*it};
-					initialize(search_dir);
-
-					if (search_dir.image_paths.size() < 1)
-					{
-						if (verbose_ > 0)
-						{
-							std::cout << "search directory " << *it
-									<< " is empty" << std::endl;
-						}
-					}
-					else
-					{
-						for (auto i = 0ul;
-							 i < target_dir.image_histograms.size();
-							 ++i)
-						{
-							auto& target_path = target_dir.image_paths[i];
-							auto& target_hist = target_dir.image_histograms[i];
-							if (target_hist.is_valid())
-							{
-								find_matches(target_path,
-											 target_hist,
-											 search_dir,
-											 matches);
-							}
-						}
-					}
-				}
-			}
+			
 		}
 		else
 		{
@@ -557,25 +291,55 @@ image_matcher::execute() const
 			 * if the target is an image file, match it against 
 			 * all of the images in search directories
 			 */
-			bitmap_image target_image;
-			if (!read_image_file(target_path_, target_image))
+
+			path_ptr target_path_ptr = std::make_shared<fs::path>(target_path_);
+			
+			auto insert_result = unique_paths_.insert(target_path_ptr);
+			if (!insert_result.second)
 			{
-				std::cerr << "could not read " << target_path_
-						<< " as an image" << std::endl;
+				target_path_ptr = *insert_result.first;
+			}
+			
+			build_histogram(target_path_ptr, target_hist_map);
+
+			if (target_hist_map.size() < 1)
+			{
+				std::cerr << "error: no target image found at " << target_path_
+						<< std::endl;
 				return;
 			}
-
-			rgb_image_hist target_hist{target_image};
-
-			for (auto it = search_paths_.begin();
-				it != search_paths_.end();
-				++it)
-			{
-				image_dir search_dir{*it};
-				initialize(search_dir);
-				find_matches(target_path_, target_hist, search_dir, matches);
-			}
 		}
+		
+		for (auto it = search_paths_.begin();
+			it != search_paths_.end();
+			++it)
+		{
+			build_histograms(*it, search_hist_map);
+		}
+
+		find_matches(target_hist_map, search_hist_map);
+		
+		for (auto it = target_hist_map.begin(); 
+			 it != target_hist_map.end(); 
+			 ++it)
+		{
+			search_hist_map.emplace(*std::make_move_iterator(it));
+		}
+
+		generate_symlinks(search_hist_map);
+		
+	}
+	else if (exhaustive_)
+	{
+		for (auto it = search_paths_.begin();
+			it != search_paths_.end();
+			++it)
+		{
+			build_histograms(*it, search_hist_map);
+		}
+
+		find_matches(search_hist_map);
+		generate_symlinks(search_hist_map);
 	}
 	else
 	{
@@ -588,13 +352,16 @@ image_matcher::execute() const
 			it != search_paths_.end();
 			++it)
 		{
-			image_dir search_dir{*it};
-			initialize(search_dir);
-			find_matches(search_dir, matches);
+			path_hist_map hmap;
+			build_histograms(*it, hmap);
+			find_matches(hmap);
+			for (auto it = hmap.begin(); it != hmap.end(); ++it)
+			{
+				search_hist_map.emplace(*std::make_move_iterator(it));
+			}
 		}
+		generate_symlinks(search_hist_map);
 	}
-
-	generate_symlinks(matches);
 }
 
 bool
@@ -649,7 +416,6 @@ image_matcher::create_symlink(fs::path const& link_target,
 	std::size_t dup_count = 0;
 
 	fs::path link_path(link_parent_dir_path);
-	//    std::string link_name(link_target.filename().string());
 	link_path /= link_name;
 	while (fs::exists(link_path))
 	{
@@ -668,8 +434,8 @@ image_matcher::create_symlink(fs::path const& link_target,
 	}
 	else
 	{
-		std::cout << "could not create symbolic link to " << link_target
-				<< ", error: " << ec.message() << std::endl;
+		std::cerr << "error: could not create symbolic link to " << link_target
+				<< ", error code message: " << ec.message() << std::endl;
 		return false;
 	}
 }
@@ -688,113 +454,55 @@ image_matcher::create_dir(fs::path const& dir_path) const
 		}
 		else
 		{
-			std::cout << "couldn't create directory " << dir_path 
-					<< ", error: " << ec.message() << std::endl;
+			std::cerr << "error: couldn't create directory " << dir_path 
+					<< ", error code message: " << ec.message() << std::endl;
 		}
 	}
 	else
 	{
-		std::cout << "could not create " << dir_path << ", already exists"
+		std::cerr << "error: could not create " << dir_path << ", already exists"
 				<< std::endl;
 	}
 	return result;
 }
 
 void
-image_matcher::generate_symlinks(match_result_set const& results) const
+image_matcher::create_matching_links(std::vector<path_ptr> const& paths,
+									 std::vector<double> const& distances,
+									 std::size_t set_index) const
 {
-	if (results.size() > 0)
-	{
-		if (!fs::exists(results_path_))
-		{
-			if (!create_dir(results_path_)) return;
-		}
-
-		bool assertion = fs::exists(results_path_)
-				&& fs::is_directory(results_path_)
-				&& fs::is_empty(results_path_);
-
-		if (!assertion)
-		{
-			std::cout << "results_path assertion failed" << std::endl;
-			return;
-		}
-
-		std::size_t match_count = 0;
-
-		auto it = results.begin();
-		auto end_matches = results.end();
-
-		while (it != end_matches)
-		{
-			it = create_matching_links(it,
-									end_matches,
-									results_path_,
-									match_count++);
-		}
-		std::cout << match_count << " match sets were found, containing " 
-				<< results.size() + match_count << " matching files" 
-				<< std::endl;
-	}
-	else
-	{
-		std::cout << "no matches found" << std::endl;
-	}
-}
-
-image_matcher::match_result_set::const_iterator
-image_matcher::create_matching_links(match_result_set::const_iterator it,
-									 match_result_set::const_iterator end_it,
-									 fs::path const& results_path,
-									 std::size_t set_count) const
-{
-	fs::path match_dir_path(results_path);
+	fs::path match_dir_path(results_path_);
 	std::string match_dir_name{"m"};
-	match_dir_name.append(std::to_string(set_count));
+	match_dir_name.append(std::to_string(set_index));
 	match_dir_path /= match_dir_name;
-	if (!create_dir(match_dir_path)) return end_it;
-
-	fs::path key_path(it->first);
-	fs::path match_path(it->second.first);
-	double distance = it->second.second;
-
-	std::string link_base;
-	std::string link_suffix;
-	split_filename(key_path.filename().string(), link_base, link_suffix);
-	if (annotate_links_)
+	if (!create_dir(match_dir_path))
 	{
-		link_base.append("_ref");
+		std::cerr << "error: couldn't create match set directory " 
+				<< match_dir_path << std::endl;
+		return;
 	}
-	std::string ref_link_name(link_base);
-	ref_link_name.append(link_suffix);
-
-	if (!create_symlink(key_path, ref_link_name, match_dir_path))
-		return end_it;
-
-	split_filename(match_path.filename().string(), link_base, link_suffix);
-	if (annotate_links_)
+	
+	for (auto i = 0u; i < paths.size(); ++i)
 	{
-		link_base.append("_").append(std::to_string(distance));
+		std::string link_base;
+		std::string link_suffix;
+		split_filename(paths[i]->filename().string(), link_base, link_suffix);
+		if (annotate_links_)
+		{
+			link_base.append("_").append(std::to_string(distances[i]));
+		}
+		std::string link_name(link_base);
+		link_name.append(link_suffix);
+
+		if (!create_symlink(*paths[i], link_name, match_dir_path))
+		{
+			std::cerr << "error: couldn't create symbolic link " 
+					<< link_name << " in match set directory "
+					<< match_dir_path << " to link target " << *paths[i] 
+					<< std::endl;
+ 			return;
+		}
 	}
-	std::string match_link_name(link_base);
-	match_link_name.append(link_suffix);
-
-	if (!create_symlink(match_path, match_link_name, match_dir_path))
-		return end_it;
-	++it;
-
-	while (it != end_it && it->first == key_path)
-	{
-		match_path = it->second.first;
-		distance = it->second.second;
-		match_link_name = match_path.filename().string();
-		match_link_name.append("_").append(std::to_string(distance));
-		if (!create_symlink(match_path, match_link_name, match_dir_path))
-			return end_it;
-		++it;
-	}
-
-	return it;
 }
 
 void
@@ -832,6 +540,8 @@ image_matcher::show_options() const
 	
 	std::cout << "link annotation is " << ( annotate_links_ ? "on" : "off") 
 			<< std::endl;
+	
+	std::cout << "exhaustive is " << std::boolalpha << exhaustive_ << std::endl;
 }
 
 void
@@ -839,7 +549,7 @@ image_matcher::set_match_threshold(double match_threshold)
 {
 	if (match_threshold < 0.0)
 	{
-		std::cout << "invalid match threshold value, using default: "
+		std::cerr << "warning: invalid match threshold value, using default: "
 				<< default_match_threshold_display()
 				<< std::endl;
 		match_threshold_ = default_match_threshold();
@@ -855,7 +565,7 @@ image_matcher::set_verbose(int verbose)
 {
 	if ((verbose < 0) || (verbose > 2))
 	{
-		std::cout << "invalid verbose value, using default: 0" << std::endl;
+		std::cerr << "warning: invalid verbose value, using default: 0" << std::endl;
 		verbose_ = 0;
 	}
 	else
@@ -873,9 +583,289 @@ image_matcher::set_limit(int limit)
 	}
 	else if (limit == 0)
 	{
-		std::cout << "invalid limit, using default: " << default_limit()
+		std::cerr << "warning: invalid limit, using default: " << default_limit()
 				<< std::endl;
 		limit = default_limit();
 	}
 	limit_ = limit;
+}
+
+void
+image_matcher::build_histograms(fs::path const& dir, path_hist_map& hmap)
+{
+	fs::directory_iterator end_iter;
+
+	if (verbose_ > 0)
+	{
+		std::cout << "building histograms for image files in "
+				<< dir << ":" << std::endl;
+	}
+
+	for (fs::directory_iterator dir_itr(dir);
+		dir_itr != end_iter;
+		++dir_itr)
+	{
+		try
+		{
+			fs::path canonical_path(fs::canonical(dir_itr->path()));
+			if (fs::is_regular_file(canonical_path)
+				&& (is_image_file(canonical_path)))
+			{
+				if (limit_ < 0 || unique_paths_.size() < limit_)
+				{
+					if (verbose_ > 1)
+					{
+						std::cout << "found image file: "
+								<< canonical_path.filename() << std::endl;
+					}
+					path_ptr pth = std::make_shared<fs::path>(canonical_path);
+					auto insert_result = unique_paths_.insert(pth);
+					if (insert_result.second)
+					{
+						if (verbose_ > 1)
+						{
+							std::cout << "building histogram for "
+									<< pth->filename() << std::endl;
+						}
+						else if (verbose_ == 1)
+						{
+							std::cout << ".";
+							std::cout.flush();
+						}
+						build_histogram(pth, hmap);
+					}
+				}
+				else
+				{
+					std::cout << "image count limit reached" << std::endl;
+					break;
+				}
+			}
+		}
+		catch (const std::exception & ex)
+		{
+			std::cerr << "error: '" << dir_itr->path().filename() << "' "
+					<< ex.what() << std::endl;
+		}
+	}
+	if (verbose_ == 1)
+	{
+		std::cout << std::endl;
+	}
+}
+
+void image_matcher::find_matches(path_hist_map const& target_hmap, 
+								 path_hist_map const& search_hmap)
+{
+	for (auto it_targets = target_hmap.begin(); 
+		 it_targets != target_hmap.end(); 
+		 ++it_targets)
+	{
+		for (auto it_search = search_hmap.begin(); 
+			 it_search != search_hmap.end(); 
+			 ++it_search)
+		{
+			compare(it_targets, it_search);
+		}
+	}
+}
+
+void image_matcher::find_matches(path_hist_map const& hmap)
+{
+	for (auto it_outer = hmap.begin(); it_outer != hmap.end(); ++it_outer)
+	{
+		auto it_inner = it_outer;
+		while (++it_inner != hmap.end())
+		{
+			compare(it_outer, it_inner);
+		}
+	}
+}
+
+void image_matcher::compare(path_hist_map::const_iterator a, 
+							path_hist_map::const_iterator b)
+{
+	if (path_at(a) == path_at(b))
+	{
+		return;
+	}
+	auto distance = histogram_at(a).chi_sqr_dist(histogram_at(b));
+	if (verbose_ > 1)
+	{
+		std::cout << "compared " << *path_at(a) << " with "
+				<< *path_at(b) << ": " << distance << std::endl;
+	}
+	if (distance <= match_threshold_)
+	{
+		if (verbose_ > 0)
+		{
+			std::cout << "found match -- " << *path_at(a) << " and "
+					<< *path_at(b) << ": " << distance << std::endl;
+		}
+		
+		auto match_set_end = match_set_map_.end();
+		
+		auto a_match_set = match_set_map_.find(path_at(a));
+		auto b_match_set = match_set_map_.find(path_at(b));
+		if (is_end(a_match_set) && is_end(b_match_set))
+		{
+			match_set_ptr new_set = std::make_shared<match_set>();
+			new_set->insert(path_at(a));
+			new_set->insert(path_at(b));
+			match_set_map_.emplace(path_at(a), new_set);
+			match_set_map_.emplace(path_at(b), new_set);
+			match_sets_.insert(new_set);
+		}
+		else if (!is_end(a_match_set) && is_end(b_match_set))
+		{
+			match_set_map_.emplace(path_at(b), match_set_at(a_match_set));
+			match_set_at(a_match_set)->insert(path_at(b));
+		}
+		else if (is_end(a_match_set) && !is_end(b_match_set))
+		{
+			match_set_map_.emplace(path_at(a), match_set_at(b_match_set));
+			match_set_at(b_match_set)->insert(path_at(a));
+		}
+		else // a_it != end && b_it != end
+		{
+			if (match_set_at(a_match_set) != match_set_at(b_match_set))
+			{
+				// coalesce b's match set into a's match set
+//				std::cout << *(path_at(a_match_set)) << " matched " 
+//						<< *(path_at(b_match_set)) 
+//						<< ", but they belong to disjoint match sets; coalescing" 
+//						<< std::endl;
+				for (auto b_match_set_member = match_set_at(b_match_set)->begin(); 
+					 b_match_set_member != match_set_at(b_match_set)->end(); 
+					 ++ b_match_set_member)
+				{
+					match_set_at(a_match_set)->insert(*b_match_set_member);
+				}
+				match_sets_.erase(match_set_at(b_match_set));
+				match_set_at(b_match_set) = match_set_at(a_match_set);
+			} // else nothing -- both are already in the same match set
+		}
+	}
+}
+
+void image_matcher::generate_symlinks(path_hist_map const& hist_map) const
+{
+	if (match_sets_.size() > 0)
+	{
+		if (!fs::exists(results_path_))
+		{
+			if (!create_dir(results_path_)) return;
+		}
+
+		bool assertion = fs::exists(results_path_)
+				&& fs::is_directory(results_path_)
+				&& fs::is_empty(results_path_);
+
+		if (!assertion)
+		{
+			std::cerr << "error: results_path assertion failed" << std::endl;
+			return;
+		}
+		
+		std::size_t match_set_count = 0ul;
+		
+		for (auto match_set_it = match_sets_.begin(); 
+			 match_set_it != match_sets_.end(); 
+			 ++match_set_it)
+		{
+			match_set_ptr match_set = *match_set_it;
+			std::vector<path_ptr> path_vec;
+			for (auto pit = match_set->begin(); pit != match_set->end(); ++pit)
+			{
+				path_vec.push_back(*pit);
+			}
+			std::size_t n = match_set->size();
+			std::vector<std::vector<double>> dist_matrix;
+			dist_matrix.reserve(n);
+
+			for (auto i = 0u; i < n; ++i)
+			{
+				dist_matrix.emplace_back(n, 0.0);
+			}
+
+			for (auto i = 0u; i < n - 1; ++i)
+			{
+				for (auto j = i + 1; j < n; ++j)
+				{
+					auto i_hist = hist_map.find(path_vec[i]);
+					if (i_hist == hist_map.end())
+					{
+						std::cerr << "error: histogram for " 
+								<< *(path_vec[i]) << " not found in map" 
+								<< std::endl;
+						return;
+					}
+
+					auto j_hist = hist_map.find(path_vec[j]);
+					if (j_hist == hist_map.end())
+					{
+						std::cerr << "error: histogram for " 
+								<< *(path_vec[j]) << " not found in map" 
+								<< std::endl;
+						return;
+					}
+					auto dist = 
+						histogram_at(i_hist).chi_sqr_dist(histogram_at(j_hist));
+					dist_matrix[i][j] = dist;
+					dist_matrix[j][i] = dist;					
+				}
+			}
+			
+			std::vector<double> sum_sq_err;
+			sum_sq_err.reserve(n);
+			for (auto i = 0u; i < n; ++i)
+			{
+				double sum = 0.0;
+				for (auto j = 0u; j < n; ++j)
+				{
+					double d = dist_matrix[i][j];
+					sum += d * d;
+				}
+				sum_sq_err.push_back(sum);
+			}
+			
+			auto min_index = 0u;
+			auto min_value = sum_sq_err[min_index];
+			for (auto i = 1u; i < n; ++i)
+			{
+				if (sum_sq_err[i] < min_value)
+				{
+					min_value = sum_sq_err[i];
+					min_index = i;
+				}
+			}
+
+			create_matching_links(path_vec,
+								 dist_matrix[min_index],
+								 match_set_count++);
+			
+		}
+		
+		std::cout << match_set_count << " match sets were found, containing " 
+				<< match_set_map_.size() << " matching files" 
+				<< std::endl;
+	}
+	else
+	{
+		std::cout << "no matches found" << std::endl;
+	}
+}
+
+void 
+image_matcher::build_histogram(path_ptr p, path_hist_map& hmap)
+{
+	if (hmap.count(p) == 0)
+	{
+		bitmap_image img;
+
+		if (read_image_file(*p, img))
+		{
+			hmap.emplace(p,img);
+		}			
+	}
 }

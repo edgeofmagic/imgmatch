@@ -51,7 +51,7 @@
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
           <buildCommand>./cmake_make.sh</buildCommand>
           <cleanCommand>./cmake_make.sh clean</cleanCommand>
-          <executablePath></executablePath>
+          <executablePath>build/imgmatch</executablePath>
         </makeTool>
         <preBuild>
           <preBuildCommandWorkingDir>.</preBuildCommandWorkingDir>
